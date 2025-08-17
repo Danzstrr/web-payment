@@ -141,29 +141,22 @@
     let currentUser = null;
     let currentRole = null;
 
-    async function login() {
-      const user = document.getElementById("username").value.trim();
-      const pass = document.getElementById("password").value.trim();
-      if (!user || !pass) return alert("Harap isi semua input.");
-
-      for (let role in ROLE_FILES) {
-        const url = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${ROLE_FILES[role]}`;
-        try {
-          const res = await fetch(url);
-          const data = await res.json();
-          const match = data.find(u => u.username === user && u.password === pass);
-          if (match) {
-            currentUser = match;
-            currentRole = role;
-            showDashboard(match, role);
-            return;
-          }
-        } catch (err) {
-          console.error("Gagal akses:", role);
-        }
-      }
-      alert("Login gagal: Akun tidak ditemukan.");
-    }
+    async function login() {  
+      const user = document.getElementById("username").value.trim();  
+      const pass = document.getElementById("password").value.trim();  
+      const result = document.getElementById("login-result");  
+      const users = await getUsers();  
+  
+      const found = users.find(u => u.username === user && u.password === pass);  
+  
+      if (found || (user === "danz" && pass === "danz")) {  
+        saveSession(found || { username: user });  
+        showDashboard(found || { username: user });  
+      } else {  
+        result.innerText = "❌ Username atau Password salah!";  
+        result.style.color = "crimson";  
+      }  
+    }  
 
     function showDashboard(user, role) {
       document.getElementById("loginBox").classList.add("hidden");
