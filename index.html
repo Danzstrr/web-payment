@@ -193,7 +193,7 @@ button {
   
       const found = users.find(u => u.username === user && u.password === pass);  
   
-      if (found || (user === "danz" && pass === "danz")) {  
+      if (found || (user === "danz" && pass === "danz1")) {  
         saveSession(found || { username: user });  
         showDashboard(found || { username: user });  
       } else {  
