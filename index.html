@@ -1,222 +1,165 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SC Telegram - Login</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: 'Orbitron', sans-serif;
-      background: #0a0a0a;
-      color: white;
-      min-height: 100vh;
-    }
-    .container {
-      max-width: 460px;
-      margin: auto;
-      padding: 25px;
-      position: relative;
-      text-align: center;
-    }
-    .logo-img {
-      width: 110px;
-      border-radius: 50%;
-      display: block;
-      margin: 30px auto 10px;
-      box-shadow: 0 0 15px #00f0ff;
-    }
-    .top-right {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
-    .info-box {
-      background: rgba(0, 255, 255, 0.1);
-      padding: 10px;
-      border-radius: 10px;
-      text-align: left;
-      font-size: 14px;
-      margin-top: 10px;
-      border: 1px solid #00f0ff;
-    }
-    .panel {
-      background: #111;
-      padding: 30px;
-      border-radius: 20px;
-      margin-top: 20px;
-      box-shadow: 0 0 20px #00f0ff44;
-    }
-    h2, h3 {
-      margin: 10px 0;
-      font-size: 24px;
-      letter-spacing: 1px;
-    }
-    input, button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 15px;
-      border: none;
-      border-radius: 10px;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 15px;
-    }
-    input {
-      background: #222;
-      color: white;
-      outline: none;
-    }
-    button {
-      background: linear-gradient(to right, #00f0ff, #006eff);
-      color: white;
-      font-weight: bold;
-      transition: 0.3s;
-    }
-    button:hover {
-      opacity: 0.9;
-    }
-    .hidden { display: none; }
-    .status {
-      margin-top: 20px;
-      padding: 15px;
-      background: #0f0f0f;
-      border-left: 4px solid #00f0ff;
-      border-radius: 8px;
-      font-size: 14px;
-      text-align: left;
-    }
-    .footer {
-      text-align: center;
-      margin-top: 35px;
-      font-size: 12px;
-      color: #aaa;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .login-container, .database-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <img src="https://files.catbox.moe/xq0il2.jpg" class="logo-img">
-    <div class="top-right">
-      <button onclick="toggleInfo()">⋮</button>
-      <div id="accountInfo" class="info-box hidden"></div>
+    <div class="login-container" id="loginForm">
+        <h2>Login</h2>
+        <div id="loginError" class="error"></div>
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="login()">Login</button>
     </div>
 
-    <!-- Login Box -->
-    <div class="panel" id="loginBox">
-      <h2>Login SC Telegram</h2>
-      <input type="text" id="username" placeholder="Username">
-      <input type="password" id="password" placeholder="Password">
-      <button onclick="login()">MASUK</button>
+    <div class="database-form hidden" id="databaseForm">
+        <h2>Add to Database</h2>
+        <div id="message" class=""></div>
+        <input type="text" id="key" placeholder="Key" required>
+        <textarea id="value" placeholder="Value" rows="4" required></textarea>
+        <button onclick="addToDatabase()">Add to Database</button>
     </div>
 
-    <!-- Dashboard Box -->
-    <div class="panel hidden" id="dashboardBox">
-      <h3>Tambah Bot Telegram</h3>
-      <input type="text" id="token" placeholder="Token Bot Telegram">
-      <input type="text" id="targetUsername" placeholder="Username Bot">
-      <input type="password" id="targetPassword" placeholder="Password Bot">
-      <button onclick="addToDatabase()">TAMBAHKAN</button>
-      <div class="status" id="status">Status: Menunggu input...</div>
-    </div>
+    <script>
+        const GITHUB_TOKEN = "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";
+        const GITHUB_OWNER = "Danzstrr";
+        const GITHUB_REPO = "aksesku";
+        const FILE_PATH = "database.json";
 
-    <div class="footer">@KenXiterr</div>
-  </div>
+        // Hardcoded credentials
+        const validUsername = "DANZ";
+        const validPassword = "DANZ1";
 
-  <script>
-    const GITHUB_TOKEN = "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";
-    const GITHUB_OWNER = "Danzstrr";
-    const GITHUB_REPO = "aksesku";
-    const FILE_PATH = "database.json";
-
-    const ROLE_FILES = {
-      owner: "owner.json",
-      moderator: "moderator.json",
-      pt: "pt.json",
-      reseller: "res.json",
-      tk: "tk.json"
-    };
-
-    let currentUser = null;
-    let currentRole = null;
-
-    async function login() {  
-      const user = document.getElementById("username").value.trim();  
-      const pass = document.getElementById("password").value.trim();  
-      const result = document.getElementById("login-result");  
-      const users = await getUsers();  
-  
-      const found = users.find(u => u.username === user && u.password === pass);  
-  
-      if (found || (user === "danz" && pass === "danz")) {  
-        saveSession(found || { username: user });  
-        showDashboard(found || { username: user });  
-      } else {  
-        result.innerText = "❌ Username atau Password salah!";  
-        result.style.color = "crimson";  
-      }  
-    }  
-
-    function showDashboard(user, role) {
-      document.getElementById("loginBox").classList.add("hidden");
-      document.getElementById("dashboardBox").classList.remove("hidden");
-      document.getElementById("accountInfo").innerHTML = `
-        <strong>Username:</strong> ${user.username}<br>
-        <strong>Password:</strong> ${user.password}<br>
-        <strong>Expired:</strong> ${user.expired}<br>
-        <strong>Role:</strong> ${role}
-      `;
-    }
-
-    function toggleInfo() {
-      document.getElementById("accountInfo").classList.toggle("hidden");
-    }
-
-    async function addToDatabase() {
-      const token = document.getElementById("token").value.trim();
-      const username = document.getElementById("targetUsername").value.trim();
-      const password = document.getElementById("targetPassword").value.trim();
-      const status = document.getElementById("status");
-
-      if (!token || !username || !password) {
-        status.innerText = "❌ Semua input wajib diisi!";
-        return;
-      }
-
-      try {
-        const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
-        const getRes = await fetch(apiUrl, {
-          headers: { Authorization: `Bearer ${GITHUB_TOKEN}` }
-        });
-        const jsonData = await getRes.json();
-        const content = atob(jsonData.content);
-        let data = JSON.parse(content);
-        data.push({ token, username, password });
-
-        const updatedContent = btoa(JSON.stringify(data, null, 2));
-        const updateRes = await fetch(apiUrl, {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${GITHUB_TOKEN}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            message: "Tambah bot Telegram via dashboard",
-            content: updatedContent,
-            sha: jsonData.sha
-          })
-        });
-
-        if (updateRes.ok) {
-          status.innerText = "✅ Bot berhasil ditambahkan.";
-        } else {
-          status.innerText = "❌ Gagal menyimpan ke GitHub.";
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorElement = document.getElementById('loginError');
+            
+            if (username === validUsername && password === validPassword) {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('databaseForm').classList.remove('hidden');
+            } else {
+                errorElement.textContent = "Invalid username or password";
+            }
         }
-      } catch (err) {
-        status.innerText = "❌ Error koneksi atau token salah.";
-      }
-    }
-  </script>
+
+        async function addToDatabase() {
+            const key = document.getElementById('key').value;
+            const value = document.getElementById('value').value;
+            const messageElement = document.getElementById('message');
+            
+            if (!key || !value) {
+                messageElement.textContent = "Please fill all fields";
+                messageElement.className = "error";
+                return;
+            }
+
+            try {
+                messageElement.textContent = "Updating database...";
+                messageElement.className = "";
+                
+                // First, get the current content of the file to update it
+                const getResponse = await fetch(
+                    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`,
+                    {
+                        headers: {
+                            'Authorization': `token ${GITHUB_TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+
+                let currentData = {};
+                let sha = null;
+
+                if (getResponse.ok) {
+                    const fileData = await getResponse.json();
+                    sha = fileData.sha;
+                    currentData = JSON.parse(atob(fileData.content));
+                } else if (getResponse.status !== 404) {
+                    throw new Error(`Failed to fetch file: ${getResponse.status}`);
+                }
+
+                // Update the data
+                currentData[key] = value;
+
+                // Push the update back to GitHub
+                const updateResponse = await fetch(
+                    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${GITHUB_TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: `Update database with ${key}`,
+                            content: btoa(JSON.stringify(currentData, null, 2)),
+                            sha: sha
+                        })
+                    }
+                );
+
+                if (updateResponse.ok) {
+                    messageElement.textContent = "Database updated successfully!";
+                    messageElement.className = "success";
+                    document.getElementById('key').value = "";
+                    document.getElementById('value').value = "";
+                } else {
+                    const error = await updateResponse.json();
+                    throw new Error(error.message || "Failed to update file");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                messageElement.textContent = `Error: ${error.message}`;
+                messageElement.className = "error";
+            }
+        }
+    </script>
 </body>
-</html>    
+</html>
