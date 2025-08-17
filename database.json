@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Number Database</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .login-form {
+            display: block;
+        }
+        .add-form {
+            display: none;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+        .success {
+            color: green;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WhatsApp Number Database</h1>
+        
+        <!-- Login Form -->
+        <div id="login-form" class="login-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter password">
+            </div>
+            <button onclick="login()">Login</button>
+            <div id="login-error" class="error"></div>
+        </div>
+        
+        <!-- Add Number Form -->
+        <div id="add-form" class="add-form">
+            <div class="form-group">
+                <label for="wa-number">WhatsApp Number</label>
+                <input type="text" id="wa-number" placeholder="Enter WhatsApp number (e.g., 6281234567890)">
+            </div>
+            <button onclick="addNumber()">Add Number</button>
+            <div id="message" class="error"></div>
+            <div id="success-message" class="success"></div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        @Danzz
+    </div>
+
+    <script>
+        const GITHUB_TOKEN = "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";
+        const GITHUB_OWNER = "Danzstrr";
+        const GITHUB_REPO = "aksesku";
+        const FILE_PATH = "database.json";
+        
+        const CORRECT_USERNAME = "DANZ";
+        const CORRECT_PASSWORD = "DANZ";
+        
+        function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const errorElement = document.getElementById("login-error");
+            
+            if (username.toUpperCase() === CORRECT_USERNAME && password.toUpperCase() === CORRECT_PASSWORD) {
+                document.getElementById("login-form").style.display = "none";
+                document.getElementById("add-form").style.display = "block";
+                errorElement.textContent = "";
+            } else {
+                errorElement.textContent = "Invalid username or password";
+            }
+        }
+        
+        async function addNumber() {
+            const waNumber = document.getElementById("wa-number").value.trim();
+            const messageElement = document.getElementById("message");
+            const successElement = document.getElementById("success-message");
+            
+            // Validate WhatsApp number
+            if (!waNumber) {
+                messageElement.textContent = "Please enter a WhatsApp number";
+                return;
+            }
+            
+            if (!/^[0-9]+$/.test(waNumber)) {
+                messageElement.textContent = "Please enter a valid number (digits only)";
+                return;
+            }
+            
+            messageElement.textContent = "";
+            successElement.textContent = "Processing...";
+            
+            try {
+                // First, get the current content of the file
+                const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
+                    headers: {
+                        "Authorization": `token ${GITHUB_TOKEN}`,
+                        "Accept": "application/vnd.github.v3+json"
+                    }
+                });
+                
+                let currentData = [];
+                let sha = null;
+                
+                if (getResponse.ok) {
+                    const fileData = await getResponse.json();
+                    sha = fileData.sha;
+                    const content = atob(fileData.content.replace(/\s/g, ''));
+                    currentData = JSON.parse(content);
+                } else if (getResponse.status !== 404) {
+                    throw new Error("Failed to fetch existing data");
+                }
+                
+                // Add new number
+                if (!currentData.includes(waNumber)) {
+                    currentData.push(waNumber);
+                } else {
+                    successElement.textContent = "";
+                    messageElement.textContent = "This number already exists in the database";
+                    return;
+                }
+                
+                // Update the file
+                const updateResponse = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `token ${GITHUB_TOKEN}`,
+                        "Accept": "application/vnd.github.v3+json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: "Add new WhatsApp number",
+                        content: btoa(JSON.stringify(currentData, null, 2)),
+                        sha: sha
+                    })
+                });
+                
+                if (updateResponse.ok) {
+                    successElement.textContent = "Number added successfully!";
+                    document.getElementById("wa-number").value = "";
+                } else {
+                    throw new Error("Failed to update database");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                messageElement.textContent = "An error occurred. Please try again.";
+                successElement.textContent = "";
+            }
+        }
+    </script>
+</body>
+</html>
